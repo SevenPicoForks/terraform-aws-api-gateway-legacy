@@ -9,9 +9,11 @@ locals {
 resource "aws_api_gateway_rest_api" "this" {
   count = local.enabled ? 1 : 0
 
-  name = module.this.id
-  body = jsonencode(var.openapi_config)
-  tags = module.this.tags
+  name           = module.this.id
+  body           = jsonencode(var.openapi_config)
+  tags           = module.this.tags
+  api_key_source = var.api_key_source
+  description    = var.api_gateway_description
 
   endpoint_configuration {
     types = [var.endpoint_type]
@@ -25,12 +27,25 @@ resource "aws_api_gateway_rest_api_policy" "this" {
   policy = var.rest_api_policy
 }
 
+module "log_group_label" {
+  source  = "registry.terraform.io/cloudposse/label/null"
+  version = "0.25.0"
+
+  # Allow forward slashes
+  regex_replace_chars = "/[^a-zA-Z0-9-\\/]/"
+  delimiter           = "/"
+  namespace           = "/aws"
+  stage               = "apigateway"
+  name                = module.this.id
+  enabled             = local.create_log_group
+}
+
 module "cloudwatch_log_group" {
-  source  = "cloudposse/cloudwatch-logs/aws"
+  source  = "registry.terraform.io/cloudposse/cloudwatch-logs/aws"
   version = "0.6.2"
 
-  enabled = local.create_log_group
-  context = module.this.context
+  context          = module.log_group_label.context
+  iam_role_enabled = false
 }
 
 resource "aws_api_gateway_deployment" "this" {
@@ -83,8 +98,9 @@ resource "aws_api_gateway_method_settings" "all" {
 
 # Optionally create a VPC Link to allow the API Gateway to communicate with private resources (e.g. ALB)
 resource "aws_api_gateway_vpc_link" "this" {
-  count       = local.vpc_link_enabled ? 1 : 0
-  name        = module.this.id
-  description = "VPC Link for ${module.this.id}"
-  target_arns = var.private_link_target_arns
+  count       = local.vpc_link_enabled ? length(var.private_link_target_arns) : 0
+  name        = "${module.this.id} - ${count.index}"
+  description = "Link to ${var.private_link_target_arns[count.index]}"
+  target_arns = [var.private_link_target_arns[count.index]]
+  tags        = module.this.tags
 }

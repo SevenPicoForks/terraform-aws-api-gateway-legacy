@@ -1,4 +1,4 @@
-# See https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-swagger-extensions.html for additional 
+# See https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-swagger-extensions.html for additional
 # configuration information.
 variable "openapi_config" {
   description = "The OpenAPI specification for the API"
@@ -109,3 +109,22 @@ variable "private_link_target_arns" {
   description = "A list of target ARNs for VPC Private Link"
   default     = []
 }
+
+variable "api_key_source" {
+  type = string
+  description = "Source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER"
+  default = null
+}
+
+variable "api_gateway_key_arn" {
+  type = string
+  description = "The API Gateway Key to manage access to the API."
+  default = null
+}
+
+variable "api_gateway_description" {
+  type = string
+  description = "A description to attach to the API Gateway."
+  default = null
+}
+
