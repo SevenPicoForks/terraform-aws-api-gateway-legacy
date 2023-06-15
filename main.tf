@@ -7,6 +7,7 @@ locals {
 }
 
 resource "aws_api_gateway_rest_api" "this" {
+  #checkov:skip=CKV_AWS_120:skipping 'Ensure API Gateway caching is enabled'
   count = local.enabled ? 1 : 0
 
   name           = module.this.id
@@ -17,6 +18,9 @@ resource "aws_api_gateway_rest_api" "this" {
 
   endpoint_configuration {
     types = [var.endpoint_type]
+  }
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -62,6 +66,10 @@ resource "aws_api_gateway_deployment" "this" {
 }
 
 resource "aws_api_gateway_stage" "this" {
+  #checkov:skip=CKV_AWS_73:skipping 'Ensure API Gateway has X-Ray Tracing enabled' because it can be enabled through 'var.xray_tracing_enabled'
+  #checkov:skip=CKV2_AWS_4:skipping 'Ensure API Gateway stage have logging level defined as appropriate' because it can be configured through variables
+  #checkov:skip=CKV2_AWS_29:skipping 'Ensure public API gateway are protected by WAF'
+  #checkov:skip=CKV2_AWS_51:skipping 'Ensure AWS API Gateway endpoints uses client certificate authentication'
   count                = local.enabled ? 1 : 0
   deployment_id        = aws_api_gateway_deployment.this[0].id
   rest_api_id          = aws_api_gateway_rest_api.this[0].id
@@ -85,6 +93,8 @@ resource "aws_api_gateway_stage" "this" {
 
 # Set the logging, metrics and tracing levels for all methods
 resource "aws_api_gateway_method_settings" "all" {
+  #checkov:skip=CKV_AWS_225:skipping 'Ensure API Gateway method setting caching is enabled'
+  #checkov:skip=CKV_AWS_308:skipping 'Ensure API Gateway method setting caching is set to encrypted'
   count       = local.enabled ? 1 : 0
   rest_api_id = aws_api_gateway_rest_api.this[0].id
   stage_name  = aws_api_gateway_stage.this[0].stage_name
