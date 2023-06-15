@@ -7,7 +7,6 @@ locals {
 }
 
 resource "aws_api_gateway_rest_api" "this" {
-  #checkov:skip=CKV_AWS_120:skipping 'Ensure API Gateway caching is enabled'
   count = local.enabled ? 1 : 0
 
   name           = module.this.id
@@ -70,6 +69,7 @@ resource "aws_api_gateway_stage" "this" {
   #checkov:skip=CKV2_AWS_4:skipping 'Ensure API Gateway stage have logging level defined as appropriate' because it can be configured through variables
   #checkov:skip=CKV2_AWS_29:skipping 'Ensure public API gateway are protected by WAF'
   #checkov:skip=CKV2_AWS_51:skipping 'Ensure AWS API Gateway endpoints uses client certificate authentication'
+  #checkov:skip=CKV_AWS_120:skipping 'Ensure API Gateway caching is enabled'
   count                = local.enabled ? 1 : 0
   deployment_id        = aws_api_gateway_deployment.this[0].id
   rest_api_id          = aws_api_gateway_rest_api.this[0].id
