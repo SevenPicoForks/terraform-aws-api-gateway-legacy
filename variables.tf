@@ -111,20 +111,20 @@ variable "private_link_target_arns" {
 }
 
 variable "api_key_source" {
-  type = string
+  type        = string
   description = "Source of the API key for requests. Valid values are HEADER (default) and AUTHORIZER"
-  default = null
+  default     = null
 }
 
 variable "api_gateway_key_arn" {
-  type = string
+  type        = string
   description = "The API Gateway Key to manage access to the API."
-  default = null
+  default     = null
 }
 
 variable "api_gateway_description" {
-  type = string
+  type        = string
   description = "A description to attach to the API Gateway."
-  default = null
+  default     = null
 }
 
