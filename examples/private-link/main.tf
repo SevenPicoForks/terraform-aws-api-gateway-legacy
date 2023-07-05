@@ -3,6 +3,8 @@ provider "aws" {
 }
 
 resource "aws_vpc" "this" {
+  #checkov:skip=CKV2_AWS_11:skipping 'Ensure VPC flow logging is enabled in all VPCs'
+  #checkov:skip=CKV2_AWS_12:skipping 'Ensure the default security group of every VPC restricts all traffic'
   cidr_block       = "10.99.0.0/16"
   instance_tenancy = "default"
 }
@@ -18,6 +20,8 @@ resource "aws_subnet" "private2" {
 }
 
 resource "aws_security_group" "this" {
+  #checkov:skip=CKV_AWS_260:skipping 'Ensure no security groups allow ingress from 0.0.0.0:0 to port 80'
+  #checkov:skip=CKV2_AWS_5:skipping 'Ensure that Security Groups are attached to another resource'
   name        = "allow_http"
   description = "Allow HTTP inbound traffic"
   vpc_id      = aws_vpc.this.id
@@ -31,6 +35,7 @@ resource "aws_security_group" "this" {
   }
 
   egress {
+    description      = "egress to all"
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
@@ -42,12 +47,14 @@ resource "aws_security_group" "this" {
 }
 
 resource "aws_lb" "this" {
-  name               = module.this.id
-  internal           = true
-  load_balancer_type = "network"
-  subnets            = [aws_subnet.private1.id, aws_subnet.private2.id]
+  #checkov:skip=CKV_AWS_91:skipping 'Ensure the ELBv2 (Application/Network) has access logging enabled'
+  name                             = module.this.id
+  internal                         = true
+  load_balancer_type               = "network"
+  subnets                          = [aws_subnet.private1.id, aws_subnet.private2.id]
+  enable_cross_zone_load_balancing = true
 
-  enable_deletion_protection = false
+  enable_deletion_protection = true
 }
 
 module "api_gateway" {
